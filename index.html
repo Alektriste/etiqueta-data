@@ -2,15 +2,16 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#302b63">
-    <title>Gerenciador de Validade Pro - Impressão de Etiquetas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f0c29">
+    <title>Validade Pro - Sistema Completo</title>
     
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         :root {
@@ -19,476 +20,570 @@
             --success: #38ef7d;
             --danger: #ff6b6b;
             --warning: #facc15;
+            --print: #ff6b9d;
             --bg-dark: #0f0c29;
             --bg-mid: #302b63;
             --bg-light: #24243e;
         }
 
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-mid) 50%, var(--bg-light) 100%);
-            min-height: 100vh;
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-mid) 50%, var(--bg-light) 100%);
             color: #fff;
-            -webkit-font-smoothing: antialiased;
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 15px;
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
-        header {
-            text-align: center;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        /* Header */
+        .app-header {
+            height: 70px;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
         }
 
-        h1 {
-            font-size: 1.8em;
+        .header-title {
+            font-size: 1.3rem;
+            font-weight: 700;
             background: linear-gradient(90deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .subtitle {
-            color: #a0a0a0;
-            font-size: 0.9em;
-            margin-top: 5px;
+        .header-subtitle {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
         }
 
-        /* Botões Flutuantes */
-        .quick-actions {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
+        /* Content */
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            height: 80px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-shrink: 0;
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+
+        .nav-item {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            z-index: 100;
-        }
-
-        .fab {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            gap: 6px;
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.7rem;
+            cursor: pointer;
+            padding: 10px 15px;
+            border-radius: 16px;
             transition: all 0.3s;
-            color: white;
         }
 
-        .fab:hover { transform: scale(1.1); }
-        .fab-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
-        .fab-print { background: linear-gradient(135deg, var(--success), #11998e); width: 48px; height: 48px; font-size: 20px; }
-        .fab-admin { background: linear-gradient(135deg, #f093fb, #f5576c); width: 48px; height: 48px; font-size: 20px; }
+        .nav-item.active {
+            color: var(--primary);
+            background: rgba(0,210,255,0.15);
+        }
+
+        .nav-item.print-tab.active {
+            color: var(--print);
+            background: rgba(255,107,157,0.15);
+        }
+
+        .nav-item.admin-tab.active {
+            color: var(--warning);
+            background: rgba(250,204,21,0.15);
+        }
+
+        .nav-icon {
+            font-size: 1.6rem;
+        }
+
+        /* Views */
+        .view {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         /* Cards */
         .card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 24px;
             margin-bottom: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255,255,255,0.08);
         }
 
         .card-title {
-            font-size: 1.2em;
-            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 700;
             color: var(--primary);
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card-title.print {
+            color: var(--print);
+        }
+
+        .card-title.admin {
+            color: var(--warning);
         }
 
         /* Inputs */
         .input-group {
-            margin-bottom: 15px;
+            margin-bottom: 16px;
         }
 
         .input-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             color: var(--primary);
-            font-size: 0.9em;
+            font-size: 0.9rem;
             font-weight: 600;
         }
 
         .input-group input, .input-group select {
             width: 100%;
-            padding: 12px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            background: rgba(0, 0, 0, 0.3);
-            color: white;
-            border-radius: 10px;
-            font-size: 1em;
+            height: 56px;
+            background: rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 0 20px;
+            font-size: 1rem;
+            color: #fff;
+            outline: none;
             transition: all 0.3s;
         }
 
         .input-group input:focus, .input-group select:focus {
-            outline: none;
             border-color: var(--primary);
         }
 
-        /* Botões */
-        .btn {
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            color: white;
-            font-size: 1em;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            justify-content: center;
-        }
-
-        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); width: 100%; }
-        .btn-success { background: linear-gradient(135deg, var(--success), #11998e); }
-        .btn-danger { background: linear-gradient(135deg, var(--danger), #ee5a6f); }
-        .btn-secondary { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); }
-        .btn-warning { background: linear-gradient(135deg, var(--warning), #eab308); color: #000; }
-
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-
-        /* Grid de Opções */
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .option-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 12px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-        }
-
-        .option-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--primary); }
-        .option-btn.active { background: rgba(0, 210, 255, 0.2); border-color: var(--primary); }
-        .option-btn .icon { font-size: 2em; margin-bottom: 5px; display: block; }
-
-        /* Busca Rápida para Impressão */
-        .quick-print-box {
-            background: rgba(0, 210, 255, 0.1);
-            border: 2px solid var(--primary);
-            border-radius: 15px;
-            padding: 20px;
+        /* Search */
+        .search-box {
+            position: relative;
             margin-bottom: 20px;
         }
 
-        .quick-print-title {
-            color: var(--primary);
-            font-weight: bold;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .search-container {
-            position: relative;
-        }
-
-        #quickSearch {
+        .search-input {
             width: 100%;
-            padding: 15px 20px;
-            font-size: 1.1em;
-            border: 2px solid rgba(255,255,255,0.2);
+            height: 60px;
             background: rgba(0,0,0,0.3);
-            color: white;
-            border-radius: 10px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 0 20px 0 56px;
+            font-size: 1.1rem;
+            color: #fff;
             outline: none;
         }
 
-        #quickSearch:focus {
+        .search-input:focus {
             border-color: var(--primary);
         }
 
-        .quick-suggestions {
+        .search-icon {
             position: absolute;
-            top: 100%;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.3rem;
+            opacity: 0.5;
+        }
+
+        .suggestions {
+            position: absolute;
+            top: calc(100% + 8px);
             left: 0;
             right: 0;
-            background: rgba(30, 30, 50, 0.98);
-            border-radius: 0 0 10px 10px;
-            max-height: 250px;
+            background: rgba(30,30,50,0.98);
+            border-radius: 16px;
+            max-height: 300px;
             overflow-y: auto;
             display: none;
             z-index: 100;
             border: 1px solid rgba(255,255,255,0.1);
-            margin-top: 5px;
         }
 
-        .quick-suggestions.active {
+        .suggestions.active {
             display: block;
         }
 
-        .quick-item {
-            padding: 12px 15px;
+        .suggestion-item {
+            padding: 18px 20px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.2s;
         }
 
-        .quick-item:hover {
+        .suggestion-item:hover {
             background: rgba(0,210,255,0.1);
         }
 
-        .quick-item-name {
-            font-weight: 600;
+        /* Buttons */
+        .btn {
+            width: 100%;
+            height: 56px;
+            border: none;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+            margin-bottom: 12px;
         }
 
-        .quick-item-cat {
-            font-size: 0.8em;
-            color: #888;
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #11998e);
+            color: #fff;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #ee5a6f);
+            color: #fff;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning), #eab308);
+            color: #000;
+        }
+
+        .btn-print {
+            background: linear-gradient(135deg, var(--print), #e91e63);
+            color: #fff;
+        }
+
+        .btn-secondary {
             background: rgba(255,255,255,0.1);
-            padding: 3px 8px;
-            border-radius: 10px;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
-        /* Preview de Impressão */
-        .print-preview-panel {
+        /* Preview */
+        .preview-panel {
             background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 15px;
-            text-align: center;
+            border-radius: 20px;
+            padding: 24px;
+            margin-top: 20px;
             display: none;
+            border: 2px solid var(--print);
         }
 
-        .print-preview-panel.active {
+        .preview-panel.active {
             display: block;
-            animation: fadeIn 0.3s ease;
         }
 
-        .preview-label {
-            background: white;
-            color: black;
-            padding: 20px;
-            border-radius: 5px;
-            display: inline-block;
+        .label-preview {
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px 20px;
+            margin: 0 auto 24px;
+            max-width: 340px;
             text-align: center;
-            min-width: 200px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            color: #000;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
         }
 
-        .preview-title {
-            font-size: 10pt;
-            font-weight: bold;
-            margin-bottom: 5px;
-            text-transform: uppercase;
+        .label-header {
+            position: absolute;
+            top: 15px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 3px;
+            color: #666;
         }
 
-        .preview-product {
-            font-size: 14pt;
-            font-weight: bold;
+        .label-product {
+            font-size: 1.4rem;
+            font-weight: 700;
             margin-bottom: 10px;
         }
 
-        .preview-date {
-            font-size: 18pt;
-            font-weight: bold;
-            color: #000;
-            margin-bottom: 5px;
+        .label-date {
+            font-size: 2.2rem;
+            font-weight: 800;
         }
 
-        .preview-time {
-            font-size: 12pt;
+        .label-time {
+            font-size: 1.1rem;
             color: #333;
+            margin-top: 5px;
         }
 
-        .preview-meta {
-            font-size: 8pt;
-            color: #666;
-            margin-top: 10px;
-            border-top: 1px solid #ddd;
-            padding-top: 5px;
+        .label-amb {
+            position: absolute;
+            bottom: 45px;
+            font-size: 0.75rem;
+            color: #d00;
+            font-weight: 700;
         }
 
-        /* Abas */
-        .tabs {
+        .label-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 32px;
+            background: #f5f5f5;
             display: flex;
-            gap: 5px;
-            margin-bottom: 20px;
-            overflow-x: auto;
-            padding-bottom: 5px;
-        }
-
-        .tab {
-            flex: 1;
-            min-width: 100px;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            border: none;
-            color: white;
-            cursor: pointer;
-            border-radius: 10px;
-            font-size: 0.85em;
-            white-space: nowrap;
-            transition: all 0.3s;
-        }
-
-        .tab.active { background: var(--primary); color: #000; font-weight: 600; }
-
-        /* Resultados */
-        .results-header {
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
+            justify-content: center;
+            font-size: 0.65rem;
+            color: #666;
+            border-top: 1px solid #ddd;
         }
 
-        .time-badge {
-            background: rgba(0, 210, 255, 0.2);
-            padding: 8px 16px;
+        /* Categories */
+        .category-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .category-card {
+            background: rgba(255,255,255,0.03);
             border-radius: 20px;
-            font-size: 0.9em;
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        .category-section {
-            margin-bottom: 20px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
             overflow: hidden;
             border-left: 4px solid;
         }
 
+        .cat-vegetais { border-color: #4ade80; }
+        .cat-embalagens { border-color: #22c55e; }
+        .cat-molhos { border-color: #facc15; }
+        .cat-molhos-emb { border-color: #eab308; }
+        .cat-bacons { border-color: #f87171; }
+        .cat-bacon-emb { border-color: #ef4444; }
+        .cat-sobremesas-liq { border-color: #e879f9; }
+        .cat-sobremesas-liq-emb { border-color: #d946ef; }
+        .cat-sobremesas-secas { border-color: #c084fc; }
+        .cat-sobremesas-secas-emb { border-color: #a855f7; }
+
         .category-header {
-            padding: 12px 15px;
-            font-weight: bold;
-            font-size: 0.9em;
+            padding: 18px 20px;
+            font-weight: 700;
+            font-size: 0.95rem;
             text-transform: uppercase;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0,0,0,0.2);
+        }
+
+        .cat-vegetais .category-header { color: #4ade80; }
+        .cat-embalagens .category-header { color: #22c55e; }
+        .cat-molhos .category-header { color: #facc15; }
+        .cat-molhos-emb .category-header { color: #eab308; }
+        .cat-bacons .category-header { color: #f87171; }
+        .cat-bacon-emb .category-header { color: #ef4444; }
+        .cat-sobremesas-liq .category-header { color: #e879f9; }
+        .cat-sobremesas-liq-emb .category-header { color: #d946ef; }
+        .cat-sobremesas-secas .category-header { color: #c084fc; }
+        .cat-sobremesas-secas-emb .category-header { color: #a855f7; }
+
+        .category-items {
+            padding: 8px;
+        }
+
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .category-item:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .item-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .item-meta {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: rgba(0,210,255,0.1);
+            border: 1px solid rgba(0,210,255,0.3);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-icon:hover {
+            background: rgba(0,210,255,0.2);
+        }
+
+        .btn-icon.print {
+            background: rgba(255,107,157,0.1);
+            border-color: rgba(255,107,157,0.3);
+            color: var(--print);
+        }
+
+        .btn-icon.print:hover {
+            background: rgba(255,107,157,0.2);
+        }
+
+        .btn-icon.delete {
+            background: rgba(255,107,107,0.1);
+            border-color: rgba(255,107,107,0.3);
+            color: var(--danger);
+        }
+
+        .btn-icon.delete:hover {
+            background: rgba(255,107,107,0.2);
+        }
+
+        /* Admin */
+        .admin-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .item-card {
-            padding: 12px 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            display: grid;
-            grid-template-columns: 1fr auto auto;
-            gap: 10px;
-            align-items: center;
+        .admin-item-info {
+            flex: 1;
         }
 
-        .item-main { display: flex; flex-direction: column; gap: 5px; }
-        .item-title { font-weight: 600; font-size: 0.95em; display: flex; align-items: center; gap: 8px; }
-        .item-meta { display: flex; gap: 15px; font-size: 0.85em; color: #888; }
-        .timeline-mini { display: flex; align-items: center; gap: 5px; font-size: 0.8em; color: #666; margin-top: 5px; }
+        .admin-item-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
 
-        /* Botão de impressão no item */
-        .item-print-btn {
-            background: rgba(0, 210, 255, 0.2);
-            border: 1px solid var(--primary);
+        .admin-item-cat {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .admin-item-hours {
+            font-size: 0.9rem;
             color: var(--primary);
-            padding: 8px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.8em;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            margin-right: 12px;
         }
-
-        .item-print-btn:hover {
-            background: var(--primary);
-            color: #000;
-        }
-
-        /* Cores por categoria */
-        .cat-vegetais { border-left-color: #4ade80; } .cat-vegetais .category-header { color: #4ade80; }
-        .cat-embalagens-veg { border-left-color: #22c55e; } .cat-embalagens-veg .category-header { color: #22c55e; }
-        .cat-molhos { border-left-color: #facc15; } .cat-molhos .category-header { color: #facc15; }
-        .cat-molhos-emb { border-left-color: #eab308; } .cat-molhos-emb .category-header { color: #eab308; }
-        .cat-bacons { border-left-color: #f87171; } .cat-bacons .category-header { color: #f87171; }
-        .cat-bacon-emb { border-left-color: #ef4444; } .cat-bacon-emb .category-header { color: #ef4444; }
-        .cat-sobremesas-liq { border-left-color: #e879f9; } .cat-sobremesas-liq .category-header { color: #e879f9; }
-        .cat-sobremesas-liq-emb { border-left-color: #d946ef; } .cat-sobremesas-liq-emb .category-header { color: #d946ef; }
-        .cat-sobremesas-secas { border-left-color: #c084fc; } .cat-sobremesas-secas .category-header { color: #c084fc; }
-        .cat-sobremesas-secas-emb { border-left-color: #a855f7; } .cat-sobremesas-secas-emb .category-header { color: #a855f7; }
-
-        /* Dias da semana */
-        .dia-seg { color: #60a5fa; } .dia-ter { color: #fbbf24; } .dia-qua { color: #f87171; }
-        .dia-qui { color: #fb923c; } .dia-sex { color: #4ade80; } .dia-sab { color: #f97316; } .dia-dom { color: #ffffff; }
-
-        .ambientacao { color: var(--danger); font-size: 0.8em; font-weight: bold; animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
         /* Toast */
         .toast {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(56, 239, 125, 0.9);
+            top: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: rgba(56,239,125,0.95);
             color: #000;
-            padding: 15px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            transform: translateX(400px);
-            transition: transform 0.3s;
+            padding: 16px 28px;
+            border-radius: 16px;
+            font-weight: 700;
+            opacity: 0;
+            transition: all 0.3s;
             z-index: 1000;
         }
 
-        .toast.show { transform: translateX(0); }
-        .toast.error { background: rgba(255, 107, 107, 0.9); color: white; }
-
-        /* Histórico de Impressão */
-        .print-history {
-            margin-top: 20px;
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
         }
 
-        .history-title {
-            color: #888;
-            font-size: 0.9em;
-            margin-bottom: 10px;
+        .toast.error {
+            background: rgba(255,107,107,0.95);
+            color: #fff;
         }
 
+        /* History */
         .history-chips {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 10px;
+            margin-top: 16px;
         }
 
         .history-chip {
-            background: rgba(255,255,255,0.1);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.85em;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 12px 18px;
+            border-radius: 24px;
+            font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
         }
 
         .history-chip:hover {
@@ -496,116 +591,120 @@
             color: #000;
         }
 
-        /* Utilidades */
-        .hidden { display: none !important; }
-        .flex { display: flex; } .gap-2 { gap: 10px; }
-        .mt-2 { margin-top: 15px; } .w-full { width: 100%; }
-
-        /* Responsivo */
-        @media (max-width: 768px) {
-            .options-grid { grid-template-columns: 1fr; }
-            .item-card { grid-template-columns: 1fr; }
-            .item-print-btn { justify-content: center; }
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255,255,255,0.5);
         }
 
-        /* ==================== ESTILOS DE IMPRESSÃO ==================== */
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Responsive */
+        @media (min-width: 768px) {
+            .app-content {
+                max-width: 600px;
+                margin: 0 auto;
+            }
+        }
+
+        /* Print Styles */
         @media print {
-            @page { size: 80mm 50mm; margin: 0; }
-            
-            body { background: white; color: black; }
-            .no-print, .quick-actions, .tabs, .options-grid, .btn-secondary, 
-            #viewMenu, #viewAdmin, .toast, .fab, .search-container, .quick-print-box,
-            .print-history, .category-section { display: none !important; }
-            
-            #viewResults { display: block !important; }
-            .print-preview-panel { display: block !important; background: none; }
-            .preview-label { box-shadow: none; border: 1px solid #000; }
+            body * {
+                visibility: hidden;
+            }
+            .label-preview, .label-preview * {
+                visibility: visible;
+            }
+            .label-preview {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Toast -->
-    <div id="toast" class="toast"></div>
-
-    <!-- Botões Flutuantes -->
-    <div class="quick-actions">
-        <button class="fab fab-print" onclick="focusQuickPrint()" title="Imprimir Rápido">🖨️</button>
-        <button class="fab fab-admin" onclick="toggleAdmin()" title="Admin">⚙️</button>
-        <button class="fab fab-primary" onclick="openCalculator()" title="Calcular">🚀</button>
-    </div>
-
-    <div class="container">
-        <header>
-            <h1>📋 Validade Pro + Impressão</h1>
-            <p class="subtitle">Calcule validades e imprima etiquetas instantaneamente</p>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div>
+                <div class="header-title">📋 Validade Pro</div>
+                <div class="header-subtitle" id="headerSubtitle">Carregando...</div>
+            </div>
         </header>
 
-        <!-- QUICK PRINT BOX - Sempre visível no topo -->
-        <div class="quick-print-box no-print" id="quickPrintBox">
-            <div class="quick-print-title">
-                <span>⚡</span>
-                <span>IMPRESSÃO RÁPIDA DE ETIQUETA</span>
-            </div>
-            <div class="search-container">
-                <input type="text" id="quickSearch" placeholder="Digite o produto para imprimir etiqueta..." autocomplete="off">
-                <div class="quick-suggestions" id="quickSuggestions"></div>
-            </div>
+        <!-- Content -->
+        <main class="app-content">
             
-            <!-- Preview da Etiqueta -->
-            <div class="print-preview-panel" id="printPreview">
-                <div class="preview-label" id="previewLabel">
-                    <div class="preview-title">VALIDADE</div>
-                    <div class="preview-product" id="previewProduct">-</div>
-                    <div class="preview-date" id="previewDate">-</div>
-                    <div class="preview-time" id="previewTime">-</div>
-                    <div class="preview-meta" id="previewMeta">-</div>
+            <!-- VIEW: Consulta -->
+            <div id="viewConsulta" class="view active">
+                <div class="card">
+                    <div class="card-title">🔍 Buscar Produto</div>
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" class="search-input" id="searchConsulta" placeholder="Digite o nome do produto..." autocomplete="off">
+                        <div class="suggestions" id="suggestionsConsulta"></div>
+                    </div>
                 </div>
-                
-                <div class="mt-2 flex gap-2" style="justify-content: center;">
-                    <button class="btn btn-success" onclick="executePrint()">
-                        <span>🖨️</span>
-                        <span>IMPRIMIR AGORA</span>
+
+                <div class="card">
+                    <div class="card-title">📦 Todos os Produtos</div>
+                    <div class="category-list" id="categoryList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">⏳</div>
+                            <div>Carregando produtos...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: Impressão -->
+            <div id="viewImpressao" class="view">
+                <div class="card">
+                    <div class="card-title print">🖨️ Impressão de Etiquetas</div>
+                    
+                    <div class="search-box">
+                        <span class="search-icon">🖨️</span>
+                        <input type="text" class="search-input" id="searchPrint" placeholder="Digite para imprimir..." autocomplete="off">
+                        <div class="suggestions" id="suggestionsPrint"></div>
+                    </div>
+
+                    <div class="history-chips" id="historyChips"></div>
+                </div>
+
+                <div class="preview-panel" id="previewPanel">
+                    <div class="label-preview" id="labelPreview">
+                        <div class="label-header">VALIDADE</div>
+                        <div class="label-product" id="previewProduct">-</div>
+                        <div class="label-date" id="previewDate">--/--</div>
+                        <div class="label-time" id="previewTime">--:--</div>
+                        <div class="label-amb" id="previewAmb"></div>
+                        <div class="label-footer" id="previewFooter">--</div>
+                    </div>
+
+                    <button class="btn btn-print" onclick="imprimirEtiqueta()">
+                        🖨️ IMPRIMIR AGORA
                     </button>
-                    <button class="btn btn-secondary" onclick="closePreview()">
-                        <span>✕</span>
-                        <span>Fechar</span>
+                    <button class="btn btn-secondary" onclick="fecharPreview()">
+                        ✕ Cancelar
                     </button>
                 </div>
             </div>
 
-            <!-- Histórico -->
-            <div class="print-history" id="printHistory">
-                <div class="history-title">📌 Impressões Recentes (toque para reimprimir):</div>
-                <div class="history-chips" id="historyChips"></div>
-            </div>
-        </div>
-
-        <!-- VIEW: Menu Principal -->
-        <div id="viewMenu" class="card no-print">
-            <h2 class="card-title">🎯 Consulta Completa</h2>
-            
-            <div class="options-grid">
-                <button class="option-btn" onclick="selectMode('all')" id="btnAll">
-                    <span class="icon">📦</span>
-                    <span>Todos os Produtos</span>
-                </button>
-                <button class="option-btn" onclick="selectMode('filter')" id="btnFilter">
-                    <span class="icon">🔍</span>
-                    <span>Busca Específica</span>
-                </button>
-            </div>
-
-            <div id="filterInput" class="hidden">
-                <div class="input-group">
-                    <label>Buscar produtos (separe por vírgula)</label>
-                    <input type="text" id="searchInput" placeholder="Ex: Alface, Cheddar, Bacon">
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label>⏰ Horário de Início</label>
-                <input type="time" id="timeInput" required>
-            </div>
-
-            <button class="btn btn-primary" onclick="calculate()">
-        
+            <!-- VIEW: Admin -->
+            <div id="viewAdmin" class="view">
+                <div class="card">
+                    <div class="card-title admin">➕ Adicionar Produto</div>
+                    
+                    <div class="input-group">
+                        <label>Categoria</label>
+                        <select id="newCategoria">
+                            <option value="Vegetais">Vegetais</option>
+                            <option value="Embalagens de Vegetal">Embalagens de Vegetal</option>
+                            <option valu
