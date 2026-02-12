@@ -689,8 +689,7 @@
                     
                     <div class="input-group">
                         <label>Definir data/hora manualmente (opcional)</label>
-                        <input type="datetime-local" id="inputHorario" onchange="definirHorarioManual()">
-                    </div>
+                  <input type="datetime-local" id="inputHorario" onchange="definirHorarioManual()">
                     
                     <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin: 8px 0;">
                         <span id="textoHorario">💡 Usando horário atual</span>
@@ -1048,45 +1047,35 @@
                 // ==========================================
         // INICIALIZACAO
         // ==========================================
+                // Inicia a aplicacao
         function init() {
-            // Copia dados iniciais para produtos
-            for (var cat in dadosIniciais) {
-                produtos[cat] = {};
-                for (var item in dadosIniciais[cat]) {
-                    produtos[cat][item] = {
-                        horas: dadosIniciais[cat][item].horas,
-                        amb: dadosIniciais[cat][item].amb
-                    };
-                }
-            }
+            // Copia dados iniciais
+            produtos = JSON.parse(JSON.stringify(dadosIniciais));
             
             // Tenta carregar do localStorage
             try {
                 var salvos = localStorage.getItem('vp');
-                if (salvos) {
-                    var parsed = JSON.parse(salvos);
-                    if (parsed && Object.keys(parsed).length > 0) {
-                        produtos = parsed;
-                    }
-                }
-            } catch (e) {
-                console.log('Storage nao disponivel');
-            }
+                if (salvos) produtos = JSON.parse(salvos);
+            } catch(e) {}
             
+            // Renderiza imediatamente
             renderizarCategorias();
-            setupEventos();
-            atualizarHora();
-            setInterval(atualizarHora, 1000);
+            
+            // Atualiza hora no header
+            setInterval(function() {
+                var agora = new Date();
+                var el = document.getElementById('headerSubtitle');
+                if (el) el.textContent = agora.toLocaleDateString('pt-BR') + ' ' + agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+            }, 1000);
         }
 
-        function atualizarHora() {
-            var agora = new Date();
-            var el = document.getElementById('headerSubtitle');
-            if (el) {
-                el.textContent = agora.toLocaleDateString('pt-BR') + ' ' + 
-                    agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-            }
+        // Chama init quando pagina carregar
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
         }
+
                 // ==========================================
         // RENDERIZACAO
         // ==========================================
@@ -1178,8 +1167,9 @@
             return map[categoria] || '';
         }
 
-        function calcularValidade(horas) {
-            var agora = new Date();
+                function calcularValidade(horas) {
+            // USA horarioConsulta se existir, senao usa horario atual
+            var agora = horarioConsulta || new Date();
             var validade = new Date(agora.getTime() + (horas * 60 * 60 * 1000));
             
             var dias = ['Do', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sá'];
@@ -1191,11 +1181,6 @@
             };
         }
 
-        function escapeHtml(text) {
-            var div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML.replace(/'/g, "\\'");
-        }
                 // ==========================================
         // EVENTOS
         // ==========================================
