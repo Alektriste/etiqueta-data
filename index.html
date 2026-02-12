@@ -6,7 +6,21 @@
     <meta name="theme-color" content="#0f0c29">
     <title>Validade Pro - Sistema Completo</title>
     
-    <style>
+    <style>        .dono-tab.active {
+            color: var(--warning);
+            background: rgba(250, 204, 21, 0.15);
+        }
+        
+        optgroup {
+            color: #fff;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        optgroup option {
+            color: #fff;
+            background: #302b63;
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -665,6 +679,21 @@
         <main class="app-content">
             
             <!-- VIEW: Consulta -->
+                            <!-- Card de Horário Manual -->
+                <div class="card">
+                    <div class="card-title">⏰ Horário de Início</div>
+                    <div class="input-group">
+                        <label>Definir horário manualmente (opcional)</label>
+                        <input type="datetime-local" id="horarioManual" onchange="atualizarHorarioManual()">
+                    </div>
+                    <div style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 8px;">
+                        💡 Deixe vazio para usar horário atual: <span id="horarioAtual"></span>
+                    </div>
+                    <button class="btn btn-secondary" onclick="usarHorarioAtual()" style="margin-top: 12px;">
+                        🔄 Usar Horário Atual
+                    </button>
+                </div>
+                
             <div id="viewConsulta" class="view active">
                 <div class="card">
                     <div class="card-title">🔍 Buscar Produto</div>
@@ -763,6 +792,98 @@
                 </div>
             </div>
 
+            <!-- VIEW: Dono (Protegida por senha) -->
+            <div id="viewDono" class="view">
+                <!-- Tela de Login -->
+                <div id="loginPanel" class="card">
+                    <div class="card-title admin">🔐 Acesso do Dono</div>
+                    <div class="input-group">
+                        <label>Usuário</label>
+                        <input type="text" id="loginUser" placeholder="Digite o usuário">
+                    </div>
+                    <div class="input-group">
+                        <label>Senha</label>
+                        <input type="password" id="loginPass" placeholder="Digite a senha">
+                    </div>
+                    <button class="btn btn-primary" onclick="fazerLogin()">
+                        🔓 Entrar
+                    </button>
+                    <div id="loginErro" style="color: #ff6b6b; margin-top: 10px; display: none;">
+                        ❌ Usuário ou senha incorretos!
+                    </div>
+                </div>
+
+                <!-- Painel Admin (escondido até logar) -->
+                <div id="painelAdmin" style="display: none;">
+                    <div class="card">
+                        <div class="card-title admin">➕ Adicionar Produto</div>
+                        <div class="input-group">
+                            <label>Categoria</label>
+                            <select id="donoCategoria">
+                                <option value="Vegetais">Vegetais</option>
+                                <option value="Embalagens de Vegetal">Embalagens de Vegetal</option>
+                                <option value="Molhos">Molhos</option>
+                                <option value="Molhos Embalagem">Molhos Embalagem</option>
+                                <option value="Bacons">Bacons</option>
+                                <option value="Bacon Embalagens">Bacon Embalagens</option>
+                                <option value="Sobremesas Líquidas">Sobremesas Líquidas</option>
+                                <option value="Sobremesas Líquidas Embalagens">Sobremesas Líquidas Embalagens</option>
+                                <option value="Sobremesas Secas">Sobremesas Secas</option>
+                                <option value="Sobremesas Secas Embalagem">Sobremesas Secas Embalagem</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Nome do Produto</label>
+                            <input type="text" id="donoNome" placeholder="Ex: Produto Novo">
+                        </div>
+                        <div class="input-group">
+                            <label>Validade (horas)</label>
+                            <input type="number" id="donoHoras" placeholder="Ex: 24" min="1">
+                        </div>
+                        <div class="input-group">
+                            <label>Ambientação (horas, opcional)</label>
+                            <input type="number" id="donoAmb" placeholder="0 = sem ambientação" min="0">
+                        </div>
+                        <button class="btn btn-success" onclick="donoAdicionar()">
+                            ➕ Adicionar Produto
+                        </button>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title admin">✏️ Modificar Produto Existente</div>
+                        <div class="input-group">
+                            <label>Selecionar Produto</label>
+                            <select id="donoSelectProduto" onchange="donoCarregarProduto()">
+                                <option value="">-- Escolha um produto --</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Nova Validade (horas)</label>
+                            <input type="number" id="donoEditHoras" placeholder="Nova validade" min="1">
+                        </div>
+                        <div class="input-group">
+                            <label>Nova Ambientação (horas)</label>
+                            <input type="number" id="donoEditAmb" placeholder="Nova ambientação" min="0">
+                        </div>
+                        <button class="btn btn-warning" onclick="donoSalvarEdicao()">
+                            💾 Salvar Alterações
+                        </button>
+                        <button class="btn btn-danger" onclick="donoExcluir()">
+                            🗑️ Excluir Produto
+                        </button>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title admin">🗑️ Gerenciar Todos</div>
+                        <div id="donoListaProdutos"></div>
+                    </div>
+
+                    <button class="btn btn-secondary" onclick="donoSair()">
+                        🚪 Sair do Modo Dono
+                    </button>
+                </div>
+            </div>
+            
         </main>
 
         <!-- Bottom Nav -->
@@ -780,7 +901,11 @@
                 <span>Gerenciar</span>
             </button>
         </nav>
-
+                    <button class="nav-item dono-tab" onclick="showView('dono')">
+                <span class="nav-icon">🔐</span>
+                <span>Dono</span>
+            </button>
+            
         <!-- Toast -->
         <div class="toast" id="toast"></div>
     </div>
@@ -1311,6 +1436,264 @@
         } else {
             init();
         }
-    </script>
+    </script>        // ==========================================
+        // VARIAVEIS DE HORARIO
+        // ==========================================
+        var horarioBase = null; // null = usar horario atual
+
+        function atualizarHorarioManual() {
+            var input = document.getElementById('horarioManual');
+            if (input && input.value) {
+                horarioBase = new Date(input.value);
+                showToast('⏰ Horário definido: ' + horarioBase.toLocaleString('pt-BR'));
+                renderizarCategorias();
+            }
+        }
+
+        function usarHorarioAtual() {
+            horarioBase = null;
+            var input = document.getElementById('horarioManual');
+            if (input) input.value = '';
+            showToast('🔄 Usando horário atual');
+            renderizarCategorias();
+        }
+
+        // Sobrescreve calcularValidade para usar horarioBase
+        function calcularValidade(horas) {
+            var agora = horarioBase || new Date();
+            var validade = new Date(agora.getTime() + (horas * 60 * 60 * 1000));
+            
+            var dias = ['Do', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sá'];
+            
+            return {
+                data: ('0' + validade.getDate()).slice(-2) + '/' + ('0' + (validade.getMonth() + 1)).slice(-2),
+                hora: ('0' + validade.getHours()).slice(-2) + ':' + ('0' + validade.getMinutes()).slice(-2),
+                diaSemana: dias[validade.getDay()]
+            };
+        }
+
+        // ==========================================
+        // SISTEMA DE LOGIN DONO
+        // ==========================================
+        var donoLogado = false;
+        const DONO_USER = '817228';
+        const DONO_PASS = '8172';
+
+        function fazerLogin() {
+            var user = document.getElementById('loginUser').value;
+            var pass = document.getElementById('loginPass').value;
+            
+            if (user === DONO_USER && pass === DONO_PASS) {
+                donoLogado = true;
+                document.getElementById('loginPanel').style.display = 'none';
+                document.getElementById('painelAdmin').style.display = 'block';
+                document.getElementById('loginErro').style.display = 'none';
+                donoAtualizarSelect();
+                donoRenderizarLista();
+                showToast('✅ Bem-vindo, Dono!');
+            } else {
+                document.getElementById('loginErro').style.display = 'block';
+            }
+        }
+
+        function donoSair() {
+            donoLogado = false;
+            document.getElementById('loginUser').value = '';
+            document.getElementById('loginPass').value = '';
+            document.getElementById('loginPanel').style.display = 'block';
+            document.getElementById('painelAdmin').style.display = 'none';
+            showView('consulta');
+        }
+
+        // ==========================================
+        // FUNCOES DO DONO - CRUD COMPLETO
+        // ==========================================
+        function donoAdicionar() {
+            var categoria = document.getElementById('donoCategoria').value;
+            var nome = document.getElementById('donoNome').value.trim();
+            var horas = parseInt(document.getElementById('donoHoras').value);
+            var amb = parseInt(document.getElementById('donoAmb').value) || 0;
+            
+            if (!nome || !horas) {
+                showToast('❌ Preencha nome e validade!', true);
+                return;
+            }
+            
+            if (!produtos[categoria]) produtos[categoria] = {};
+            
+            if (produtos[categoria][nome]) {
+                showToast('❌ Produto já existe! Use Modificar.', true);
+                return;
+            }
+            
+            produtos[categoria][nome] = { horas: horas, amb: amb };
+            salvarDados();
+            
+            document.getElementById('donoNome').value = '';
+            document.getElementById('donoHoras').value = '';
+            document.getElementById('donoAmb').value = '';
+            
+            donoAtualizarSelect();
+            donoRenderizarLista();
+            renderizarCategorias();
+            showToast('✅ Produto adicionado!');
+        }
+
+        function donoAtualizarSelect() {
+            var select = document.getElementById('donoSelectProduto');
+            if (!select) return;
+            
+            var html = '<option value="">-- Escolha um produto --</option>';
+            
+            for (var cat in produtos) {
+                html += '<optgroup label="' + cat + '">';
+                for (var nome in produtos[cat]) {
+                    html += '<option value="' + cat + '|' + nome + '">' + nome + ' (' + produtos[cat][nome].horas + 'h)</option>';
+                }
+                html += '</optgroup>';
+            }
+            
+            select.innerHTML = html;
+        }
+
+        var produtoEditando = null;
+
+        function donoCarregarProduto() {
+            var select = document.getElementById('donoSelectProduto');
+            if (!select || !select.value) {
+                produtoEditando = null;
+                return;
+            }
+            
+            var parts = select.value.split('|');
+            var categoria = parts[0];
+            var nome = parts[1];
+            
+            if (produtos[categoria] && produtos[categoria][nome]) {
+                produtoEditando = { categoria: categoria, nome: nome, dados: produtos[categoria][nome] };
+                document.getElementById('donoEditHoras').value = produtoEditando.dados.horas;
+                document.getElementById('donoEditAmb').value = produtoEditando.dados.amb;
+            }
+        }
+
+        function donoSalvarEdicao() {
+            if (!produtoEditando) {
+                showToast('❌ Selecione um produto primeiro!', true);
+                return;
+            }
+            
+            var novasHoras = parseInt(document.getElementById('donoEditHoras').value);
+            var novoAmb = parseInt(document.getElementById('donoEditAmb').value) || 0;
+            
+            if (!novasHoras) {
+                showToast('❌ Validade inválida!', true);
+                return;
+            }
+            
+            produtos[produtoEditando.categoria][produtoEditando.nome] = { horas: novasHoras, amb: novoAmb };
+            salvarDados();
+            
+            donoAtualizarSelect();
+            donoRenderizarLista();
+            renderizarCategorias();
+            showToast('✅ Produto atualizado!');
+        }
+
+        function donoExcluir() {
+            if (!produtoEditando) {
+                showToast('❌ Selecione um produto primeiro!', true);
+                return;
+            }
+            
+            if (!confirm('Tem certeza que deseja EXCLUIR "' + produtoEditando.nome + '" permanentemente?')) return;
+            
+            delete produtos[produtoEditando.categoria][produtoEditando.nome];
+            
+            if (Object.keys(produtos[produtoEditando.categoria]).length === 0) {
+                delete produtos[produtoEditando.categoria];
+            }
+            
+            salvarDados();
+            
+            document.getElementById('donoSelectProduto').value = '';
+            document.getElementById('donoEditHoras').value = '';
+            document.getElementById('donoEditAmb').value = '';
+            produtoEditando = null;
+            
+            donoAtualizarSelect();
+            donoRenderizarLista();
+            renderizarCategorias();
+            showToast('🗑️ Produto excluído!');
+        }
+
+        function donoRenderizarLista() {
+            var container = document.getElementById('donoListaProdutos');
+            if (!container) return;
+            
+            var total = 0;
+            var html = '';
+            
+            for (var cat in produtos) {
+                for (var nome in produtos[cat]) {
+                    total++;
+                    var d = produtos[cat][nome];
+                    html += '<div class="admin-item">' +
+                        '<div class="admin-item-info">' +
+                            '<div class="admin-item-name">' + nome + '</div>' +
+                            '<div class="admin-item-cat">' + cat + '</div>' +
+                        '</div>' +
+                        '<div class="admin-item-hours">' + d.horas + 'h' + (d.amb > 0 ? ' (Amb: ' + d.amb + 'h)' : '') + '</div>' +
+                    '</div>';
+                }
+            }
+            
+            if (total === 0) {
+                html = '<div class="empty-state"><div class="empty-state-icon">📦</div><div>Nenhum produto</div></div>';
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function salvarDados() {
+            try {
+                localStorage.setItem('vp', JSON.stringify(produtos));
+            } catch (e) {
+                console.log('Erro ao salvar');
+            }
+        }
+
+        // Atualiza showView para incluir 'dono'
+        var originalShowView = showView;
+        showView = function(viewName) {
+            if (viewName === 'dono' && !donoLogado) {
+                // Reseta tela de login
+                document.getElementById('loginPanel').style.display = 'block';
+                document.getElementById('painelAdmin').style.display = 'none';
+                document.getElementById('loginUser').value = '';
+                document.getElementById('loginPass').value = '';
+                document.getElementById('loginErro').style.display = 'none';
+            }
+            
+            // Chama função original
+            var views = document.querySelectorAll('.view');
+            for (var i = 0; i < views.length; i++) views[i].classList.remove('active');
+            var navs = document.querySelectorAll('.nav-item');
+            for (var i = 0; i < navs.length; i++) navs[i].classList.remove('active');
+            
+            var viewId = 'view' + viewName.charAt(0).toUpperCase() + viewName.slice(1);
+            var view = document.getElementById(viewId);
+            if (view) view.classList.add('active');
+            
+            var buttons = document.querySelectorAll('.nav-item');
+            if (viewName === 'consulta' && buttons[0]) buttons[0].classList.add('active');
+            if (viewName === 'impressao' && buttons[1]) buttons[1].classList.add('active');
+            if (viewName === 'admin' && buttons[2]) buttons[2].classList.add('active');
+            if (viewName === 'dono' && buttons[3]) buttons[3].classList.add('active');
+            
+            if (viewName === 'consulta') renderizarCategorias();
+            if (viewName === 'admin') renderizarAdmin();
+            if (viewName === 'impressao') renderizarHistorico();
+        };
+        
 </body>
 </html>
