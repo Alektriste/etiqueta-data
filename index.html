@@ -680,6 +680,37 @@
             
             <!-- VIEW: Consulta -->
                             <!-- Card de Horário Manual -->
+                                        <!-- VIEW: Consulta -->
+            <div id="viewConsulta" class="view active">
+                
+                <!-- CARD DE HORARIO MANUAL -->
+                <div class="card">
+                    <div class="card-title">⏰ Horário de Início</div>
+                    
+                    <div class="input-group">
+                        <label>Definir data/hora manualmente (opcional)</label>
+                        <input type="datetime-local" id="inputHorario" onchange="definirHorarioManual()">
+                    </div>
+                    
+                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin: 8px 0;">
+                        <span id="textoHorario">💡 Usando horário atual</span>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="definirHorarioManual()" style="flex: 1; font-size: 0.9rem;">
+                            ✅ Aplicar
+                        </button>
+                        <button class="btn btn-secondary" onclick="usarHorarioAtual()" style="flex: 1; font-size: 0.9rem;">
+                            🔄 Agora
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RESTO DA CONSULTA (busca, categorias, etc) -->
+                <div class="card">
+                    ...
+                </div>
+                
                 <div class="card">
                     <div class="card-title">⏰ Horário de Início</div>
                     <div class="input-group">
@@ -987,12 +1018,33 @@
             }
         };
 
+           // ==========================================
+        // CONTROLE DE HORARIO MANUAL (CONSULTA)
         // ==========================================
+        function definirHorarioManual() {
+            var input = document.getElementById('inputHorario');
+            if (input && input.value) {
+                horarioConsulta = new Date(input.value);
+                showToast('⏰ Horário definido: ' + horarioConsulta.toLocaleString('pt-BR'));
+                renderizarCategorias(); // ← Atualiza a lista com novo horário
+            }
+        }
+
+        function usarHorarioAtual() {
+            horarioConsulta = null;
+            var input = document.getElementById('inputHorario');
+            if (input) input.value = '';
+            showToast('🔄 Usando horário atual');
+            renderizarCategorias(); // ← Atualiza a lista
+        }
+     
+// ==========================================
         // VARIAVEIS GLOBAIS
         // ==========================================
         var produtos = {};
         var historico = [];
         var produtoAtual = null;
+        var horarioConsulta = null;
                 // ==========================================
         // INICIALIZACAO
         // ==========================================
@@ -1240,7 +1292,7 @@
             var dados = produtos[categoria][nome];
             produtoAtual = { nome: nome, categoria: categoria, horas: dados.horas, amb: dados.amb };
             
-            var validade = calcularValidade(dados.horas);
+            var validade = calcularValidade(dados.horas, true); // true = impressão (sempre atual)
             
             var elProd = document.getElementById('previewProduct');
             var elDate = document.getElementById('previewDate');
@@ -1436,7 +1488,26 @@
         } else {
             init();
         }
-    </script>        // ==========================================
+    </script>      
+              // ==========================================
+        // CALCULAR VALIDADE (CONSULTA USA horarioConsulta, IMPRESSAO USA new Date())
+        // ==========================================
+        function calcularValidade(horas, paraImpressao) {
+            // Se for para impressao, SEMPRE usa horario atual
+            // Se for para consulta, usa horarioConsulta (se definido) ou atual
+            var base = paraImpressao ? new Date() : (horarioConsulta || new Date());
+            
+            var validade = new Date(base.getTime() + (horas * 60 * 60 * 1000));
+            
+            var dias = ['Do', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sá'];
+            
+            return {
+                data: ('0' + validade.getDate()).slice(-2) + '/' + ('0' + (validade.getMonth() + 1)).slice(-2),
+                hora: ('0' + validade.getHours()).slice(-2) + ':' + ('0' + validade.getMinutes()).slice(-2),
+                diaSemana: dias[validade.getDay()]
+            };
+        }
+        // ==========================================
         // VARIAVEIS DE HORARIO
         // ==========================================
         var horarioBase = null; // null = usar horario atual
