@@ -2,22 +2,15 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0f0c29">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>EtiquetaData Pro - Impressão de Validade</title>
-    
-    <!-- Ícone para iOS -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgZmlsbD0iIzMwMmI2MyIvPjx0ZXh0IHg9Ijk2IiB5PSIxMTAiIGZvbnQtc2l6ZT0iODAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMwMGQyZmYiPueJh++8iTwvdGV4dD48L3N2Zz4=">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#302b63">
+    <title>Gerenciador de Validade Pro - Impressão de Etiquetas</title>
     
     <style>
-        /* ==================== RESET E BASE ==================== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
         }
 
         :root {
@@ -29,190 +22,230 @@
             --bg-dark: #0f0c29;
             --bg-mid: #302b63;
             --bg-light: #24243e;
-            --safe-top: env(safe-area-inset-top, 0px);
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
 
-        html, body {
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-mid) 50%, var(--bg-light) 100%);
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-mid) 50%, var(--bg-light) 100%);
+            min-height: 100vh;
             color: #fff;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* ==================== LAYOUT PRINCIPAL ==================== */
-        .app-container {
-            height: 100vh;
-            height: 100dvh; /* Dynamic viewport height para mobile */
-            display: flex;
-            flex-direction: column;
-            padding-top: var(--safe-top);
-            padding-bottom: var(--safe-bottom);
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 15px;
         }
 
-        /* Header - Altura fixa: 60px */
-        .app-header {
-            height: 60px;
+        header {
+            text-align: center;
+            padding: 20px;
             background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(20px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            flex-shrink: 0;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .app-title {
-            font-size: 1.25rem;
-            font-weight: 700;
+        h1 {
+            font-size: 1.8em;
             background: linear-gradient(90deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
         }
 
-        /* Área de conteúdo - Ocupa resto da tela */
-        .app-content {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            padding: 16px;
-            position: relative;
+        .subtitle {
+            color: #a0a0a0;
+            font-size: 0.9em;
+            margin-top: 5px;
         }
 
-        /* Bottom bar - Altura fixa: 80px */
-        .app-bottom {
-            height: 80px;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            padding: 0 20px;
-            flex-shrink: 0;
-            padding-bottom: max(10px, var(--safe-bottom));
-        }
-
-        /* ==================== COMPONENTES ==================== */
-
-        /* Botão de navegação inferior */
-        .nav-btn {
+        /* Botões Flutuantes */
+        .quick-actions {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            background: none;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .fab {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
             border: none;
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 0.7rem;
             cursor: pointer;
-            transition: all 0.2s;
-            padding: 8px 16px;
-            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            transition: all 0.3s;
+            color: white;
         }
 
-        .nav-btn.active {
-            color: var(--primary);
-            background: rgba(0, 210, 255, 0.1);
-        }
+        .fab:hover { transform: scale(1.1); }
+        .fab-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
+        .fab-print { background: linear-gradient(135deg, var(--success), #11998e); width: 48px; height: 48px; font-size: 20px; }
+        .fab-admin { background: linear-gradient(135deg, #f093fb, #f5576c); width: 48px; height: 48px; font-size: 20px; }
 
-        .nav-btn:active {
-            transform: scale(0.95);
-        }
-
-        .nav-icon {
-            font-size: 1.5rem;
-            line-height: 1;
-        }
-
-        /* Cards - Largura: 100% - 32px (padding) */
+        /* Cards */
         .card {
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
+            border-radius: 15px;
             padding: 20px;
-            margin-bottom: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 20px;
             backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .card-title {
-            font-size: 0.875rem;
-            font-weight: 600;
+            font-size: 1.2em;
+            margin-bottom: 15px;
             color: var(--primary);
-            margin-bottom: 16px;
             display: flex;
             align-items: center;
             gap: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
-        /* Input de busca - Altura: 56px */
-        .search-box {
-            position: relative;
-            margin-bottom: 16px;
+        /* Inputs */
+        .input-group {
+            margin-bottom: 15px;
         }
 
-        .search-input {
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--primary);
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .input-group input, .input-group select {
             width: 100%;
-            height: 56px;
-            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
             border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 0 20px 0 52px;
-            font-size: 1rem;
-            color: #fff;
-            outline: none;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            border-radius: 10px;
+            font-size: 1em;
             transition: all 0.3s;
         }
 
-        .search-input:focus {
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
             border-color: var(--primary);
-            background: rgba(0, 0, 0, 0.4);
         }
 
-        .search-input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
+        /* Botões */
+        .btn {
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
         }
 
-        .search-icon {
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); width: 100%; }
+        .btn-success { background: linear-gradient(135deg, var(--success), #11998e); }
+        .btn-danger { background: linear-gradient(135deg, var(--danger), #ee5a6f); }
+        .btn-secondary { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .btn-warning { background: linear-gradient(135deg, var(--warning), #eab308); color: #000; }
+
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+
+        /* Grid de Opções */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .option-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .option-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--primary); }
+        .option-btn.active { background: rgba(0, 210, 255, 0.2); border-color: var(--primary); }
+        .option-btn .icon { font-size: 2em; margin-bottom: 5px; display: block; }
+
+        /* Busca Rápida para Impressão */
+        .quick-print-box {
+            background: rgba(0, 210, 255, 0.1);
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .quick-print-title {
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        #quickSearch {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1.1em;
+            border: 2px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3);
+            color: white;
+            border-radius: 10px;
+            outline: none;
+        }
+
+        #quickSearch:focus {
+            border-color: var(--primary);
+        }
+
+        .quick-suggestions {
             position: absolute;
-            left: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.25rem;
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
-        /* Lista de sugestões */
-        .suggestions {
-            position: absolute;
-            top: calc(100% + 8px);
+            top: 100%;
             left: 0;
             right: 0;
             background: rgba(30, 30, 50, 0.98);
-            border-radius: 16px;
-            max-height: 280px;
+            border-radius: 0 0 10px 10px;
+            max-height: 250px;
             overflow-y: auto;
             display: none;
             z-index: 100;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-top: 5px;
         }
 
-        .suggestions.active {
+        .quick-suggestions.active {
             display: block;
         }
 
-        .suggestion-item {
-            padding: 16px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        .quick-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
             cursor: pointer;
             display: flex;
             justify-content: space-between;
@@ -220,285 +253,176 @@
             transition: all 0.2s;
         }
 
-        .suggestion-item:last-child {
-            border-bottom: none;
-            border-radius: 0 0 16px 16px;
+        .quick-item:hover {
+            background: rgba(0,210,255,0.1);
         }
 
-        .suggestion-item:first-child {
-            border-radius: 16px 16px 0 0;
-        }
-
-        .suggestion-item:hover, .suggestion-item:active {
-            background: rgba(0, 210, 255, 0.1);
-        }
-
-        .suggestion-name {
+        .quick-item-name {
             font-weight: 600;
-            font-size: 1rem;
         }
 
-        .suggestion-cat {
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.5);
-            background: rgba(255, 255, 255, 0.1);
-            padding: 4px 10px;
-            border-radius: 20px;
+        .quick-item-cat {
+            font-size: 0.8em;
+            color: #888;
+            background: rgba(255,255,255,0.1);
+            padding: 3px 8px;
+            border-radius: 10px;
         }
 
-        /* Preview da etiqueta - Tamanho: 320px x 200px (proporção 80x50mm) */
-        .label-preview-container {
+        /* Preview de Impressão */
+        .print-preview-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            text-align: center;
             display: none;
-            animation: slideUp 0.3s ease;
         }
 
-        .label-preview-container.active {
+        .print-preview-panel.active {
             display: block;
+            animation: fadeIn 0.3s ease;
         }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .preview-label {
+            background: white;
+            color: black;
+            padding: 20px;
+            border-radius: 5px;
+            display: inline-block;
+            text-align: center;
+            min-width: 200px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
 
         .preview-title {
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 12px;
-            text-align: center;
-        }
-
-        .label-preview {
-            width: 100%;
-            max-width: 320px;
-            height: 200px;
-            background: #fff;
-            border-radius: 8px;
-            margin: 0 auto 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: #000;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .label-header {
-            position: absolute;
-            top: 12px;
-            font-size: 0.625rem;
-            font-weight: 800;
-            letter-spacing: 2px;
-            color: #666;
+            font-size: 10pt;
+            font-weight: bold;
+            margin-bottom: 5px;
             text-transform: uppercase;
         }
 
-        .label-product {
-            font-size: 1.25rem;
-            font-weight: 700;
-            text-align: center;
-            padding: 0 20px;
-            margin-bottom: 8px;
-            line-height: 1.2;
+        .preview-product {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
 
-        .label-date {
-            font-size: 2.5rem;
-            font-weight: 800;
+        .preview-date {
+            font-size: 18pt;
+            font-weight: bold;
             color: #000;
-            line-height: 1;
+            margin-bottom: 5px;
         }
 
-        .label-time {
-            font-size: 1.25rem;
+        .preview-time {
+            font-size: 12pt;
             color: #333;
-            margin-top: 4px;
         }
 
-        .label-ambientacao {
-            position: absolute;
-            bottom: 40px;
-            font-size: 0.625rem;
-            color: #d00;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .label-footer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 28px;
-            background: #f5f5f5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.5rem;
+        .preview-meta {
+            font-size: 8pt;
             color: #666;
+            margin-top: 10px;
             border-top: 1px solid #ddd;
+            padding-top: 5px;
         }
 
-        /* Botões de ação - Altura: 56px */
-        .action-buttons {
+        /* Abas */
+        .tabs {
             display: flex;
-            gap: 12px;
+            gap: 5px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
         }
 
-        .btn {
-            height: 56px;
-            border: none;
-            border-radius: 16px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.2s;
+        .tab {
             flex: 1;
-        }
-
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        /* Histórico - Chips */
-        .history-section {
-            margin-top: 24px;
-        }
-
-        .history-title {
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.5);
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .history-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .history-chip {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 10px 16px;
-            border-radius: 20px;
-            font-size: 0.875rem;
+            min-width: 100px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            color: white;
             cursor: pointer;
-            transition: all 0.2s;
+            border-radius: 10px;
+            font-size: 0.85em;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .tab.active { background: var(--primary); color: #000; font-weight: 600; }
+
+        /* Resultados */
+        .results-header {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 6px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        .history-chip:active {
-            transform: scale(0.95);
+        .time-badge {
             background: rgba(0, 210, 255, 0.2);
-            border-color: var(--primary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: var(--primary);
+            font-weight: 600;
         }
 
-        /* Lista de categorias */
-        .category-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .category-card {
+        .category-section {
+            margin-bottom: 20px;
             background: rgba(255, 255, 255, 0.03);
-            border-radius: 16px;
+            border-radius: 12px;
             overflow: hidden;
             border-left: 4px solid;
         }
 
         .category-header {
-            padding: 16px 20px;
-            font-weight: 700;
-            font-size: 0.875rem;
+            padding: 12px 15px;
+            font-weight: bold;
+            font-size: 0.9em;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             background: rgba(0, 0, 0, 0.2);
-        }
-
-        .category-items {
-            padding: 8px;
-        }
-
-        .category-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 14px 16px;
-            border-radius: 12px;
-            margin-bottom: 4px;
-            transition: all 0.2s;
         }
 
-        .category-item:last-child {
-            margin-bottom: 0;
+        .item-card {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 10px;
+            align-items: center;
         }
 
-        .category-item:active {
-            background: rgba(255, 255, 255, 0.05);
-        }
+        .item-main { display: flex; flex-direction: column; gap: 5px; }
+        .item-title { font-weight: 600; font-size: 0.95em; display: flex; align-items: center; gap: 8px; }
+        .item-meta { display: flex; gap: 15px; font-size: 0.85em; color: #888; }
+        .timeline-mini { display: flex; align-items: center; gap: 5px; font-size: 0.8em; color: #666; margin-top: 5px; }
 
-        .item-info {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .item-name {
-            font-weight: 600;
-            font-size: 0.9375rem;
-        }
-
-        .item-meta {
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .item-print {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: rgba(0, 210, 255, 0.1);
-            border: 1px solid rgba(0, 210, 255, 0.3);
+        /* Botão de impressão no item */
+        .item-print-btn {
+            background: rgba(0, 210, 255, 0.2);
+            border: 1px solid var(--primary);
             color: var(--primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.3s;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            cursor: pointer;
-            transition: all 0.2s;
+            gap: 5px;
         }
 
-        .item-print:active {
+        .item-print-btn:hover {
             background: var(--primary);
             color: #000;
-            transform: scale(0.95);
         }
 
         /* Cores por categoria */
@@ -513,198 +437,175 @@
         .cat-sobremesas-secas { border-left-color: #c084fc; } .cat-sobremesas-secas .category-header { color: #c084fc; }
         .cat-sobremesas-secas-emb { border-left-color: #a855f7; } .cat-sobremesas-secas-emb .category-header { color: #a855f7; }
 
-        /* Configurações */
-        .setting-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
+        /* Dias da semana */
+        .dia-seg { color: #60a5fa; } .dia-ter { color: #fbbf24; } .dia-qua { color: #f87171; }
+        .dia-qui { color: #fb923c; } .dia-sex { color: #4ade80; } .dia-sab { color: #f97316; } .dia-dom { color: #ffffff; }
 
-        .setting-item:last-child {
-            border-bottom: none;
-        }
-
-        .setting-label {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .setting-title {
-            font-weight: 600;
-            font-size: 0.9375rem;
-        }
-
-        .setting-desc {
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        /* Toggle switch */
-        .toggle {
-            width: 52px;
-            height: 32px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            position: relative;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .toggle.active {
-            background: var(--primary);
-        }
-
-        .toggle::after {
-            content: '';
-            position: absolute;
-            width: 28px;
-            height: 28px;
-            background: #fff;
-            border-radius: 50%;
-            top: 2px;
-            left: 2px;
-            transition: all 0.3s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .toggle.active::after {
-            left: 22px;
-        }
+        .ambientacao { color: var(--danger); font-size: 0.8em; font-weight: bold; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
         /* Toast */
         .toast {
             position: fixed;
-            top: 80px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            background: rgba(56, 239, 125, 0.95);
+            top: 20px;
+            right: 20px;
+            background: rgba(56, 239, 125, 0.9);
             color: #000;
-            padding: 16px 24px;
-            border-radius: 12px;
+            padding: 15px 20px;
+            border-radius: 10px;
             font-weight: 600;
-            font-size: 0.9375rem;
-            opacity: 0;
-            transition: all 0.3s;
+            transform: translateX(400px);
+            transition: transform 0.3s;
             z-index: 1000;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
+        .toast.show { transform: translateX(0); }
+        .toast.error { background: rgba(255, 107, 107, 0.9); color: white; }
+
+        /* Histórico de Impressão */
+        .print-history {
+            margin-top: 20px;
         }
 
-        .toast.error {
-            background: rgba(255, 107, 107, 0.95);
-            color: #fff;
+        .history-title {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 10px;
         }
 
-        /* Views */
-        .view {
-            display: none;
-        }
-
-        .view.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* Input de configuração */
-        .config-input {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 12px 16px;
-            color: #fff;
-            font-size: 1rem;
-            width: 100px;
-            text-align: center;
-        }
-
-        .config-input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-        }
-
-        /* Seleção de hora */
-        .time-selector {
+        .history-chips {
             display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
-        .time-display {
-            flex: 1;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 16px;
-            text-align: center;
-            font-size: 1.5rem;
-            font-weight: 700;
-            font-family: 'Courier New', monospace;
-            letter-spacing: 2px;
-        }
-
-        .time-btn {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: #fff;
-            font-size: 1.5rem;
+        .history-chip {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
             cursor: pointer;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 5px;
         }
 
-        .time-btn:active {
+        .history-chip:hover {
             background: var(--primary);
             color: #000;
         }
 
-        /* Media queries para tablets */
-        @media (min-width: 768px) {
-            .app-content {
-                max-width: 600px;
-                margin: 0 auto;
-            }
-            
-            .label-preview {
-                max-width: 400px;
-                height: 250px;
-            }
-            
-            .label-date {
-                font-size: 3rem;
-            }
+        /* Utilidades */
+        .hidden { display: none !important; }
+        .flex { display: flex; } .gap-2 { gap: 10px; }
+        .mt-2 { margin-top: 15px; } .w-full { width: 100%; }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .options-grid { grid-template-columns: 1fr; }
+            .item-card { grid-template-columns: 1fr; }
+            .item-print-btn { justify-content: center; }
         }
 
-        /* Orientação paisagem em mobile */
-        @media (max-heig
+        /* ==================== ESTILOS DE IMPRESSÃO ==================== */
+        @media print {
+            @page { size: 80mm 50mm; margin: 0; }
+            
+            body { background: white; color: black; }
+            .no-print, .quick-actions, .tabs, .options-grid, .btn-secondary, 
+            #viewMenu, #viewAdmin, .toast, .fab, .search-container, .quick-print-box,
+            .print-history, .category-section { display: none !important; }
+            
+            #viewResults { display: block !important; }
+            .print-preview-panel { display: block !important; background: none; }
+            .preview-label { box-shadow: none; border: 1px solid #000; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Botões Flutuantes -->
+    <div class="quick-actions">
+        <button class="fab fab-print" onclick="focusQuickPrint()" title="Imprimir Rápido">🖨️</button>
+        <button class="fab fab-admin" onclick="toggleAdmin()" title="Admin">⚙️</button>
+        <button class="fab fab-primary" onclick="openCalculator()" title="Calcular">🚀</button>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>📋 Validade Pro + Impressão</h1>
+            <p class="subtitle">Calcule validades e imprima etiquetas instantaneamente</p>
+        </header>
+
+        <!-- QUICK PRINT BOX - Sempre visível no topo -->
+        <div class="quick-print-box no-print" id="quickPrintBox">
+            <div class="quick-print-title">
+                <span>⚡</span>
+                <span>IMPRESSÃO RÁPIDA DE ETIQUETA</span>
+            </div>
+            <div class="search-container">
+                <input type="text" id="quickSearch" placeholder="Digite o produto para imprimir etiqueta..." autocomplete="off">
+                <div class="quick-suggestions" id="quickSuggestions"></div>
+            </div>
+            
+            <!-- Preview da Etiqueta -->
+            <div class="print-preview-panel" id="printPreview">
+                <div class="preview-label" id="previewLabel">
+                    <div class="preview-title">VALIDADE</div>
+                    <div class="preview-product" id="previewProduct">-</div>
+                    <div class="preview-date" id="previewDate">-</div>
+                    <div class="preview-time" id="previewTime">-</div>
+                    <div class="preview-meta" id="previewMeta">-</div>
+                </div>
+                
+                <div class="mt-2 flex gap-2" style="justify-content: center;">
+                    <button class="btn btn-success" onclick="executePrint()">
+                        <span>🖨️</span>
+                        <span>IMPRIMIR AGORA</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="closePreview()">
+                        <span>✕</span>
+                        <span>Fechar</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Histórico -->
+            <div class="print-history" id="printHistory">
+                <div class="history-title">📌 Impressões Recentes (toque para reimprimir):</div>
+                <div class="history-chips" id="historyChips"></div>
+            </div>
+        </div>
+
+        <!-- VIEW: Menu Principal -->
+        <div id="viewMenu" class="card no-print">
+            <h2 class="card-title">🎯 Consulta Completa</h2>
+            
+            <div class="options-grid">
+                <button class="option-btn" onclick="selectMode('all')" id="btnAll">
+                    <span class="icon">📦</span>
+                    <span>Todos os Produtos</span>
+                </button>
+                <button class="option-btn" onclick="selectMode('filter')" id="btnFilter">
+                    <span class="icon">🔍</span>
+                    <span>Busca Específica</span>
+                </button>
+            </div>
+
+            <div id="filterInput" class="hidden">
+                <div class="input-group">
+                    <label>Buscar produtos (separe por vírgula)</label>
+                    <input type="text" id="searchInput" placeholder="Ex: Alface, Cheddar, Bacon">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>⏰ Horário de Início</label>
+                <input type="time" id="timeInput" required>
+            </div>
+
+            <button class="btn btn-primary" onclick="calculate()">
+        
