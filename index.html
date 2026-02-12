@@ -627,6 +627,28 @@
                 transform: translate(-50%, -50%);
             }
         }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255,255,255,0.5);
+        }
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -656,10 +678,7 @@
                 <div class="card">
                     <div class="card-title">📦 Todos os Produtos</div>
                     <div class="category-list" id="categoryList">
-                        <div class="empty-state">
-                            <div class="empty-state-icon">⏳</div>
-                            <div>Carregando produtos...</div>
-                        </div>
+                        <div class="loading">Carregando produtos</div>
                     </div>
                 </div>
             </div>
@@ -697,7 +716,7 @@
                 </div>
             </div>
 
-            <!-- VIEW: Admin -->
+                        <!-- VIEW: Admin -->
             <div id="viewAdmin" class="view">
                 <div class="card">
                     <div class="card-title admin">➕ Adicionar Produto</div>
@@ -707,4 +726,591 @@
                         <select id="newCategoria">
                             <option value="Vegetais">Vegetais</option>
                             <option value="Embalagens de Vegetal">Embalagens de Vegetal</option>
-                            <option valu
+                            <option value="Molhos">Molhos</option>
+                            <option value="Molhos Embalagem">Molhos Embalagem</option>
+                            <option value="Bacons">Bacons</option>
+                            <option value="Bacon Embalagens">Bacon Embalagens</option>
+                            <option value="Sobremesas Líquidas">Sobremesas Líquidas</option>
+                            <option value="Sobremesas Líquidas Embalagens">Sobremesas Líquidas Embalagens</option>
+                            <option value="Sobremesas Secas">Sobremesas Secas</option>
+                            <option value="Sobremesas Secas Embalagem">Sobremesas Secas Embalagem</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Nome do Produto</label>
+                        <input type="text" id="newNome" placeholder="Ex: Produto Novo">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Validade (horas)</label>
+                        <input type="number" id="newHoras" placeholder="Ex: 24" min="1">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Ambientação (horas, opcional)</label>
+                        <input type="number" id="newAmb" placeholder="0 = sem ambientação" min="0">
+                    </div>
+
+                    <button class="btn btn-success" onclick="adicionarProduto()">
+                        ➕ Adicionar Produto
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title admin">🗑️ Gerenciar Produtos</div>
+                    <div id="adminList"></div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Bottom Nav -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="showView('consulta')">
+                <span class="nav-icon">🔍</span>
+                <span>Consulta</span>
+            </button>
+            <button class="nav-item print-tab" onclick="showView('impressao')">
+                <span class="nav-icon">🖨️</span>
+                <span>Imprimir</span>
+            </button>
+            <button class="nav-item admin-tab" onclick="showView('admin')">
+                <span class="nav-icon">⚙️</span>
+                <span>Gerenciar</span>
+            </button>
+        </nav>
+
+        <!-- Toast -->
+        <div class="toast" id="toast"></div>
+    </div>
+        <script>
+        // ==========================================
+        // DADOS INICIAIS - TODOS OS PRODUTOS
+        // ==========================================
+        var dadosIniciais = {
+            "Vegetais": {
+                "Alface": { horas: 5, amb: 5 },
+                "Tomate": { horas: 4, amb: 0 },
+                "Cebola": { horas: 5, amb: 5 },
+                "Picles": { horas: 8, amb: 0 },
+                "Jalapenho": { horas: 8, amb: 0 },
+                "Cebola crispy": { horas: 12, amb: 0 },
+                "Queijo cheddar (Fatias)": { horas: 4, amb: 4 }
+            },
+            "Embalagens de Vegetal": {
+                "Alface (Embalagem)": { horas: 24, amb: 0 },
+                "Cebola (Embalagem)": { horas: 24, amb: 0 },
+                "Cebola crispy (Embalagem)": { horas: 168, amb: 0 },
+                "Jalapenho (Embalagem)": { horas: 240, amb: 0 },
+                "Picles (Embalagem)": { horas: 168, amb: 0 }
+            },
+            "Molhos": {
+                "Barbecue": { horas: 12, amb: 0 },
+                "Cheddar (Molho)": { horas: 5, amb: 5 },
+                "Furioso": { horas: 12, amb: 0 },
+                "Ketchup": { horas: 12, amb: 0 },
+                "Maionese": { horas: 12, amb: 0 },
+                "Mostarda": { horas: 12, amb: 0 },
+                "Molho stacker": { horas: 12, amb: 0 }
+            },
+            "Molhos Embalagem": {
+                "Barbecue (Embalagem)": { horas: 168, amb: 0 },
+                "Cheddar (Embalagem)": { horas: 120, amb: 0 },
+                "Furioso (Embalagem)": { horas: 168, amb: 0 },
+                "Ketchup (Embalagem)": { horas: 1440, amb: 0 },
+                "Maionese (Embalagem)": { horas: 168, amb: 0 },
+                "Mostarda (Embalagem)": { horas: 168, amb: 0 },
+                "Molho stacker (Embalagem)": { horas: 72, amb: 0 }
+            },
+            "Bacons": {
+                "Bacon pronto": { horas: 4, amb: 0 },
+                "Bacon cubos/picados": { horas: 8, amb: 0 }
+            },
+            "Bacon Embalagens": {
+                "Bacon pronto (Embalagem)": { horas: 720, amb: 0 },
+                "Bacon picado (Embalagem)": { horas: 72, amb: 0 }
+            },
+            "Sobremesas Líquidas": {
+                "Xarope de baunilha": { horas: 24, amb: 0 },
+                "Calda de Chocolate": { horas: 168, amb: 0 },
+                "Calda de doce de leite": { horas: 168, amb: 0 },
+                "Calda de morango": { horas: 72, amb: 0 },
+                "Calda de ovomaltine": { horas: 168, amb: 0 },
+                "Nutella": { horas: 48, amb: 0 }
+            },
+            "Sobremesas Líquidas Embalagens": {
+                "Xarope de baunilha (Emb.)": { horas: 168, amb: 0 },
+                "Calda de chocolate (Emb.)": { horas: 240, amb: 0 },
+                "Calda de doce de leite (Emb.)": { horas: 360, amb: 0 },
+                "Calda de morango (Emb.)": { horas: 240, amb: 0 },
+                "Calda de ovomaltine (Emb.)": { horas: 2880, amb: 0 },
+                "Nutella (Emb.)": { horas: 720, amb: 0 }
+            },
+            "Sobremesas Secas": {
+                "Casquinha": { horas: 24, amb: 0 },
+                "Ovomaltine em pó": { horas: 168, amb: 0 },
+                "Brownie picado": { horas: 72, amb: 0 },
+                "Leite em pó": { horas: 168, amb: 0 },
+                "Proteína": { horas: 168, amb: 0 }
+            },
+            "Sobremesas Secas Embalagem": {
+                "Ovomaltine em pó (Emb.)": { horas: 720, amb: 0 },
+                "Brownie picado (Emb.)": { horas: 720, amb: 0 },
+                "Leite em pó (Emb.)": { horas: 360, amb: 0 },
+                "Proteína (Emb.)": { horas: 720, amb: 0 }
+            }
+        };
+
+        // ==========================================
+        // VARIAVEIS GLOBAIS
+        // ==========================================
+        var produtos = {};
+        var historico = [];
+        var produtoAtual = null;
+                // ==========================================
+        // INICIALIZACAO
+        // ==========================================
+        function init() {
+            // Copia dados iniciais para produtos
+            for (var cat in dadosIniciais) {
+                produtos[cat] = {};
+                for (var item in dadosIniciais[cat]) {
+                    produtos[cat][item] = {
+                        horas: dadosIniciais[cat][item].horas,
+                        amb: dadosIniciais[cat][item].amb
+                    };
+                }
+            }
+            
+            // Tenta carregar do localStorage
+            try {
+                var salvos = localStorage.getItem('vp');
+                if (salvos) {
+                    var parsed = JSON.parse(salvos);
+                    if (parsed && Object.keys(parsed).length > 0) {
+                        produtos = parsed;
+                    }
+                }
+            } catch (e) {
+                console.log('Storage nao disponivel');
+            }
+            
+            renderizarCategorias();
+            setupEventos();
+            atualizarHora();
+            setInterval(atualizarHora, 1000);
+        }
+
+        function atualizarHora() {
+            var agora = new Date();
+            var el = document.getElementById('headerSubtitle');
+            if (el) {
+                el.textContent = agora.toLocaleDateString('pt-BR') + ' ' + 
+                    agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+            }
+        }
+                // ==========================================
+        // RENDERIZACAO
+        // ==========================================
+        function renderizarCategorias(filtro) {
+            var container = document.getElementById('categoryList');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            var termo = (filtro || '').toLowerCase();
+            var encontrou = false;
+            
+            for (var categoria in produtos) {
+                var itens = produtos[categoria];
+                var itensFiltrados = [];
+                
+                for (var nome in itens) {
+                    if (!termo || nome.toLowerCase().indexOf(termo) !== -1) {
+                        itensFiltrados.push({ nome: nome, dados: itens[nome] });
+                    }
+                }
+                
+                if (itensFiltrados.length === 0) continue;
+                encontrou = true;
+                
+                var card = document.createElement('div');
+                card.className = 'category-card ' + getClasseCategoria(categoria);
+                
+                var header = document.createElement('div');
+                header.className = 'category-header';
+                header.textContent = categoria;
+                card.appendChild(header);
+                
+                var itemsDiv = document.createElement('div');
+                itemsDiv.className = 'category-items';
+                
+                for (var i = 0; i < itensFiltrados.length; i++) {
+                    var item = itensFiltrados[i];
+                    var validade = calcularValidade(item.dados.horas);
+                    var div = document.createElement('div');
+                    div.className = 'category-item';
+                    
+                    var ambText = item.dados.amb > 0 ? ' • 🌡️ Amb: ' + item.dados.amb + 'h' : '';
+                    
+                    div.innerHTML = 
+                        '<div class="item-info">' +
+                            '<div class="item-name">' + escapeHtml(item.nome) + '</div>' +
+                            '<div class="item-meta">' +
+                                '⏱️ ' + item.dados.horas + 'h (' + Math.floor(item.dados.horas/24) + 'd) • ' +
+                                '📅 ' + validade.data + ' ' + validade.hora + ' • ' +
+                                validade.diaSemana + ambText +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="item-actions">' +
+                            '<button class="btn-icon print" onclick="prepararImpressao(\'' + escapeHtml(item.nome) + '\', \'' + categoria + '\')" title="Imprimir">' +
+                                '🖨️' +
+                            '</button>' +
+                        '</div>';
+                    
+                    itemsDiv.appendChild(div);
+                }
+                
+                card.appendChild(itemsDiv);
+                container.appendChild(card);
+            }
+            
+            if (!encontrou) {
+                container.innerHTML = 
+                    '<div class="empty-state">' +
+                        '<div class="empty-state-icon">🔍</div>' +
+                        '<div>Nenhum produto encontrado</div>' +
+                    '</div>';
+            }
+        }
+
+        function getClasseCategoria(categoria) {
+            var map = {
+                'Vegetais': 'cat-vegetais',
+                'Embalagens de Vegetal': 'cat-embalagens',
+                'Molhos': 'cat-molhos',
+                'Molhos Embalagem': 'cat-molhos-emb',
+                'Bacons': 'cat-bacons',
+                'Bacon Embalagens': 'cat-bacon-emb',
+                'Sobremesas Líquidas': 'cat-sobremesas-liq',
+                'Sobremesas Líquidas Embalagens': 'cat-sobremesas-liq-emb',
+                'Sobremesas Secas': 'cat-sobremesas-secas',
+                'Sobremesas Secas Embalagem': 'cat-sobremesas-secas-emb'
+            };
+            return map[categoria] || '';
+        }
+
+        function calcularValidade(horas) {
+            var agora = new Date();
+            var validade = new Date(agora.getTime() + (horas * 60 * 60 * 1000));
+            
+            var dias = ['Do', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sá'];
+            
+            return {
+                data: ('0' + validade.getDate()).slice(-2) + '/' + ('0' + (validade.getMonth() + 1)).slice(-2),
+                hora: ('0' + validade.getHours()).slice(-2) + ':' + ('0' + validade.getMinutes()).slice(-2),
+                diaSemana: dias[validade.getDay()]
+            };
+        }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML.replace(/'/g, "\\'");
+        }
+                // ==========================================
+        // EVENTOS
+        // ==========================================
+        function setupEventos() {
+            var searchConsulta = document.getElementById('searchConsulta');
+            if (searchConsulta) {
+                searchConsulta.addEventListener('input', function(e) {
+                    renderizarCategorias(e.target.value);
+                });
+            }
+            
+            var searchPrint = document.getElementById('searchPrint');
+            if (searchPrint) {
+                searchPrint.addEventListener('input', function(e) {
+                    mostrarSugestoesPrint(e.target.value);
+                });
+            }
+        }
+
+        function mostrarSugestoesPrint(termo) {
+            var suggestionsPrint = document.getElementById('suggestionsPrint');
+            if (!suggestionsPrint) return;
+            
+            termo = termo.toLowerCase();
+            
+            if (termo.length < 1) {
+                suggestionsPrint.classList.remove('active');
+                return;
+            }
+            
+            var matches = [];
+            for (var categoria in produtos) {
+                for (var nome in produtos[categoria]) {
+                    if (nome.toLowerCase().indexOf(termo) !== -1) {
+                        matches.push({ nome: nome, categoria: categoria });
+                    }
+                }
+            }
+            
+            if (matches.length > 0) {
+                var html = '';
+                for (var i = 0; i < matches.length; i++) {
+                    var m = matches[i];
+                    html += '<div class="suggestion-item" onclick="selecionarSugestaoPrint(\'' + escapeHtml(m.nome) + '\', \'' + m.categoria + '\')">' +
+                        '<span>' + escapeHtml(m.nome) + '</span>' +
+                        '<span style="color: rgba(255,255,255,0.5); font-size: 0.8rem;">' + m.categoria + '</span>' +
+                    '</div>';
+                }
+                suggestionsPrint.innerHTML = html;
+                suggestionsPrint.classList.add('active');
+            } else {
+                suggestionsPrint.classList.remove('active');
+            }
+        }
+
+        function selecionarSugestaoPrint(nome, categoria) {
+            var searchPrint = document.getElementById('searchPrint');
+            var suggestionsPrint = document.getElementById('suggestionsPrint');
+            if (searchPrint) searchPrint.value = nome;
+            if (suggestionsPrint) suggestionsPrint.classList.remove('active');
+            prepararImpressao(nome, categoria);
+        }
+
+        function showView(viewName) {
+            var views = document.querySelectorAll('.view');
+            for (var i = 0; i < views.length; i++) {
+                views[i].classList.remove('active');
+            }
+            
+            var navs = document.querySelectorAll('.nav-item');
+            for (var i = 0; i < navs.length; i++) {
+                navs[i].classList.remove('active');
+            }
+            
+            var viewId = 'view' + viewName.charAt(0).toUpperCase() + viewName.slice(1);
+            var view = document.getElementById(viewId);
+            if (view) view.classList.add('active');
+            
+            var buttons = document.querySelectorAll('.nav-item');
+            if (viewName === 'consulta' && buttons[0]) buttons[0].classList.add('active');
+            if (viewName === 'impressao' && buttons[1]) buttons[1].classList.add('active');
+            if (viewName === 'admin' && buttons[2]) buttons[2].classList.add('active');
+            
+            if (viewName === 'consulta') renderizarCategorias();
+            if (viewName === 'admin') renderizarAdmin();
+            if (viewName === 'impressao') renderizarHistorico();
+        }
+                // ==========================================
+        // IMPRESSAO
+        // ==========================================
+        function prepararImpressao(nome, categoria) {
+            if (!produtos[categoria] || !produtos[categoria][nome]) return;
+            
+            var dados = produtos[categoria][nome];
+            produtoAtual = { nome: nome, categoria: categoria, horas: dados.horas, amb: dados.amb };
+            
+            var validade = calcularValidade(dados.horas);
+            
+            var elProd = document.getElementById('previewProduct');
+            var elDate = document.getElementById('previewDate');
+            var elTime = document.getElementById('previewTime');
+            var elFooter = document.getElementById('previewFooter');
+            var elAmb = document.getElementById('previewAmb');
+            var elPanel = document.getElementById('previewPanel');
+            
+            if (elProd) elProd.textContent = nome;
+            if (elDate) elDate.textContent = validade.data;
+            if (elTime) elTime.textContent = validade.hora;
+            if (elFooter) elFooter.textContent = 'Validade: ' + dados.horas + 'h';
+            
+            if (elAmb) {
+                if (dados.amb > 0) {
+                    elAmb.textContent = 'AMBIENTACAO: ' + dados.amb + 'H';
+                    elAmb.style.display = 'block';
+                } else {
+                    elAmb.style.display = 'none';
+                }
+            }
+            
+            if (elPanel) elPanel.classList.add('active');
+            
+            adicionarHistorico(nome);
+        }
+
+        function fecharPreview() {
+            var panel = document.getElementById('previewPanel');
+            if (panel) panel.classList.remove('active');
+            produtoAtual = null;
+        }
+
+        function imprimirEtiqueta() {
+            if (!produtoAtual) return;
+            window.print();
+            showToast('🖨️ Enviado para impressao!');
+            setTimeout(fecharPreview, 500);
+        }
+
+        function adicionarHistorico(nome) {
+            historico = historico.filter(function(h) { return h !== nome; });
+            historico.unshift(nome);
+            if (historico.length > 10) historico = historico.slice(0, 10);
+            
+            try {
+                localStorage.setItem('vh', JSON.stringify(historico));
+            } catch (e) {}
+            
+            renderizarHistorico();
+        }
+
+        function renderizarHistorico() {
+            var container = document.getElementById('historyChips');
+            if (!container) return;
+            
+            if (historico.length === 0) {
+                container.innerHTML = '<div style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">Nenhum historico ainda</div>';
+                return;
+            }
+            
+            var html = '';
+            for (var i = 0; i < historico.length; i++) {
+                var nome = historico[i];
+                var cat = '';
+                for (var c in produtos) {
+                    if (produtos[c][nome]) {
+                        cat = c;
+                        break;
+                    }
+                }
+                html += '<div class="history-chip" onclick="prepararImpressao(\'' + escapeHtml(nome) + '\', \'' + cat + '\')">🕐 ' + escapeHtml(nome) + '</div>';
+            }
+            container.innerHTML = html;
+        }
+                // ==========================================
+        // ADMIN
+        // ==========================================
+        function adicionarProduto() {
+            var categoria = document.getElementById('newCategoria').value;
+            var nome = document.getElementById('newNome').value.trim();
+            var horas = parseInt(document.getElementById('newHoras').value);
+            var amb = parseInt(document.getElementById('newAmb').value) || 0;
+            
+            if (!nome || !horas || horas < 1) {
+                showToast('❌ Preencha todos os campos obrigatorios!', true);
+                return;
+            }
+            
+            if (!produtos[categoria]) {
+                produtos[categoria] = {};
+            }
+            
+            if (produtos[categoria][nome]) {
+                showToast('❌ Produto ja existe!', true);
+                return;
+            }
+            
+            produtos[categoria][nome] = { horas: horas, amb: amb };
+            
+            try {
+                localStorage.setItem('vp', JSON.stringify(produtos));
+            } catch (e) {}
+            
+            document.getElementById('newNome').value = '';
+            document.getElementById('newHoras').value = '';
+            document.getElementById('newAmb').value = '';
+            
+            showToast('✅ Produto adicionado com sucesso!');
+            renderizarAdmin();
+        }
+
+        function removerProduto(categoria, nome) {
+            if (!confirm('Tem certeza que deseja remover "' + nome + '"?')) return;
+            
+            if (produtos[categoria]) {
+                delete produtos[categoria][nome];
+                if (Object.keys(produtos[categoria]).length === 0) {
+                    delete produtos[categoria];
+                }
+                
+                try {
+                    localStorage.setItem('vp', JSON.stringify(produtos));
+                } catch (e) {}
+                
+                renderizarAdmin();
+                showToast('🗑️ Produto removido!');
+            }
+        }
+
+        function renderizarAdmin() {
+            var container = document.getElementById('adminList');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            var total = 0;
+            
+            for (var categoria in produtos) {
+                for (var nome in produtos[categoria]) {
+                    total++;
+                    var dados = produtos[categoria][nome];
+                    
+                    var div = document.createElement('div');
+                    div.className = 'admin-item';
+                    div.innerHTML = 
+                        '<div class="admin-item-info">' +
+                            '<div class="admin-item-name">' + escapeHtml(nome) + '</div>' +
+                            '<div class="admin-item-cat">' + categoria + '</div>' +
+                        '</div>' +
+                        '<div style="display: flex; align-items: center;">' +
+                            '<div class="admin-item-hours">' + dados.horas + 'h</div>' +
+                            '<button class="btn-icon delete" onclick="removerProduto(\'' + categoria + '\', \'' + escapeHtml(nome) + '\')" title="Remover">' +
+                                '🗑️' +
+                            '</button>' +
+                        '</div>';
+                    container.appendChild(div);
+                }
+            }
+            
+            if (total === 0) {
+                container.innerHTML = 
+                    '<div class="empty-state">' +
+                        '<div class="empty-state-icon">📦</div>' +
+                        '<div>Nenhum produto cadastrado</div>' +
+                    '</div>';
+            }
+        }
+                // ==========================================
+        // UTILITARIOS
+        // ==========================================
+        function showToast(mensagem, erro) {
+            var toast = document.getElementById('toast');
+            if (!toast) return;
+            toast.textContent = mensagem;
+            toast.className = 'toast show' + (erro ? ' error' : '');
+            setTimeout(function() {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Fecha sugestoes ao clicar fora
+        document.addEventListener('click', function(e) {
+            var searchPrint = document.getElementById('searchPrint');
+            var suggestionsPrint = document.getElementById('suggestionsPrint');
+            if (searchPrint && suggestionsPrint && !searchPrint.contains(e.target) && !suggestionsPrint.contains(e.target)) {
+                suggestionsPrint.classList.remove('active');
+            }
+        });
+
+        // Inicia aplicacao
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>
